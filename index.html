@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Ernährung">
+    <title>Mein Ernährungs-Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .stat-unit {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            background: #f0f0f0;
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-results {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            margin-top: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .search-item {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .search-item:hover {
+            background: #f9fafb;
+        }
+
+        .search-item:last-child {
+            border-bottom: none;
+        }
+
+        .food-entry {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .food-info {
+            flex: 1;
+        }
+
+        .food-name {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .food-details {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .food-portion {
+            font-size: 12px;
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .fav-btn {
+            background: #fbbf24;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #6b7280;
+            line-height: 1;
+        }
+
+        .nav-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #6b7280;
+            font-size: 12px;
+            transition: color 0.3s;
+        }
+
+        .nav-btn.active {
+            color: #667eea;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+
+        .macro-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .macro-card {
+            text-align: center;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 10px;
+        }
+
+        .macro-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .macro-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .macro-bar {
+            background: #e5e7eb;
+            height: 6px;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .macro-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .macro-fill.protein {
+            background: #3b82f6;
+        }
+
+        .macro-fill.carbs {
+            background: #f59e0b;
+        }
+
+        .macro-fill.fat {
+            background: #ec4899;
+        }
+
+        .week-view {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .day-card {
+            text-align: center;
+            padding: 10px 5px;
+            background: #f9fafb;
+            border-radius: 10px;
+        }
+
+        .day-label {
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .day-calories {
+            font-size: 14px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .favorite-badge {
+            display: inline-block;
+            background: #fbbf24;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        .portion-info {
+            background: #e0e7ff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #4338ca;
+            margin-bottom: 15px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            background: #ddd;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            margin-left: 8px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header mit Tagesübersicht -->
+        <div class="header">
+            <h1>🍽️ Mein Ernährungs-Tracker</h1>
+            <div id="dateDisplay"></div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Gegessen</div>
+                    <div class="stat-value" id="caloriesConsumed">0</div>
+                    <div class="stat-unit">kcal</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Ziel</div>
+                    <div class="stat-value" id="caloriesBurned">0</div>
+                    <div class="stat-unit">kcal</div>
+                </div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="calorieProgress"></div>
+            </div>
+            <div style="text-align: center; margin-top: 8px; font-size: 14px; color: #374151;">
+                <span id="calorieBalance">0</span> kcal übrig
+            </div>
+
+            <!-- Makronährstoffe -->
+            <div class="macro-grid">
+                <div class="macro-card">
+                    <div class="macro-label">Protein</div>
+                    <div class="macro-value"><span id="proteinCurrent">0</span>g</div>
+                    <div class="macro-bar"><div class="macro-fill protein" id="proteinBar"></div></div>
+                    <div style="font-size: 10px; color: #6b7280; margin-top: 4px;"><span id="proteinTarget">0</span>g</div>
+                </div>
+                <div class="macro-card">
+                    <div class="macro-label">Kohlenhydrate</div>
+                    <div class="macro-value"><span id="carbsCurrent">0</span>g</div>
+                    <div class="macro-bar"><div class="macro-fill carbs" id="carbsBar"></div></div>
+                    <div style="font-size: 10px; color: #6b7280; margin-top: 4px;"><span id="carbsTarget">0</span>g</div>
+                </div>
+                <div class="macro-card">
+                    <div class="macro-label">Fett</div>
+                    <div class="macro-value"><span id="fatCurrent">0</span>g</div>
+                    <div class="macro-bar"><div class="macro-fill fat" id="fatBar"></div></div>
+                    <div style="font-size: 10px; color: #6b7280; margin-top: 4px;"><span id="fatTarget">0</span>g</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hauptinhalt -->
+        <div id="mainContent">
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="view active">
+                <div class="card">
+                    <h2>Schnellzugriff</h2>
+                    <button class="btn" onclick="showSearchModal()">🔍 Lebensmittel suchen & hinzufügen</button>
+                    <button class="btn btn-secondary" onclick="showCustomFoodModal()">➕ Eigenes Lebensmittel erstellen</button>
+                </div>
+
+                <div class="card">
+                    <h2>Heutige Mahlzeiten</h2>
+                    <div id="todayEntries"></div>
+                </div>
+
+                <div class="card">
+                    <h2>⭐ Meine Favoriten</h2>
+                    <div id="favoritesList"></div>
+                </div>
+            </div>
+
+            <!-- Statistics View -->
+            <div id="statsView" class="view" style="display: none;">
+                <div class="card">
+                    <h2>Wochenübersicht</h2>
+                    <div class="week-view" id="weekView"></div>
+                </div>
+
+                <div class="card">
+                    <h2>Deine Ziele</h2>
+                    <div class="input-group">
+                        <label>Tägliches Kalorienziel</label>
+                        <input type="number" id="dailyCalorieTarget" placeholder="z.B. 2500">
+                    </div>
+                    <div class="input-group">
+                        <label>Aktivitätslevel</label>
+                        <select id="activityLevel">
+                            <option value="1.2">Wenig Bewegung (Bürojob)</option>
+                            <option value="1.375">Leichte Aktivität (1-3x Sport/Woche)</option>
+                            <option value="1.55" selected>Moderate Aktivität (3-5x Sport/Woche)</option>
+                            <option value="1.725">Hohe Aktivität (6-7x Sport/Woche)</option>
+                            <option value="1.9">Sehr hohe Aktivität (2x täglich Sport)</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="saveSettings()">💾 Einstellungen speichern</button>
+                    <button class="btn btn-danger" onclick="resetData()" style="margin-top: 20px;">🗑️ Alle Daten löschen</button>
+                </div>
+            </div>
+
+            <!-- Reminders View -->
+            <div id="remindersView" class="view" style="display: none;">
+                <div class="card">
+                    <h2>Erinnerungen</h2>
+                    <div class="input-group">
+                        <label>Neue Erinnerung</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="time" id="reminderTime" style="flex: 1;">
+                            <button class="btn" onclick="addReminder()" style="width: auto; padding: 12px 20px;">➕</button>
+                        </div>
+                    </div>
+                    <div id="reminderList" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="nav-bottom">
+        <button class="nav-btn active" onclick="switchView('dashboard')">
+            <div class="nav-icon">🏠</div>
+            <div>Start</div>
+        </button>
+        <button class="nav-btn" onclick="switchView('stats')">
+            <div class="nav-icon">📊</div>
+            <div>Statistik</div>
+        </button>
+        <button class="nav-btn" onclick="switchView('reminders')">
+            <div class="nav-icon">🔔</div>
+            <div>Erinnerungen</div>
+        </button>
+    </div>
+
+    <!-- Modals -->
+    <!-- Search/Add Food Modal -->
+    <div class="modal" id="searchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Lebensmittel suchen</h2>
+                <button class="close-btn" onclick="closeModal('searchModal')">&times;</button>
+            </div>
+            <div class="input-group">
+                <input type="text" id="searchInput" placeholder="Suchen..." oninput="searchFood()">
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <!-- Add Food Details Modal -->
+    <div class="modal" id="addFoodModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Lebensmittel hinzufügen</h2>
+                <button class="close-btn" onclick="closeModal('addFoodModal')">&times;</button>
+            </div>
+            
+            <div id="selectedFoodInfo" style="background: #f9fafb; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                <div style="font-weight: 600; font-size: 16px; margin-bottom: 5px;" id="selectedFoodName"></div>
+                <div class="food-portion" id="selectedFoodPortion"></div>
+            </div>
+
+            <div class="input-group">
+                <label>Menge (g)</label>
+                <input type="number" id="foodAmount" value="100" oninput="updateFoodPreview()">
+            </div>
+
+            <div id="foodDetailsPreview" style="background: #f9fafb; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                <div style="font-weight: 600; margin-bottom: 10px;">Nährwerte für eingegebene Menge:</div>
+                <div style="font-size: 14px; color: #6b7280;">
+                    <div style="margin-bottom: 5px;">Kalorien: <strong id="previewCalories">0</strong> kcal</div>
+                    <div style="margin-bottom: 5px;">Protein: <strong id="previewProtein">0</strong>g</div>
+                    <div style="margin-bottom: 5px;">Kohlenhydrate: <strong id="previewCarbs">0</strong>g</div>
+                    <div>Fett: <strong id="previewFat">0</strong>g</div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="addFoodEntry()">✅ Hinzufügen</button>
+        </div>
+    </div>
+
+    <!-- Custom Food Modal -->
+    <div class="modal" id="customFoodModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Eigenes Lebensmittel</h2>
+                <button class="close-btn" onclick="closeModal('customFoodModal')">&times;</button>
+            </div>
+            <div class="input-group">
+                <label>Name</label>
+                <input type="text" id="customFoodName" placeholder="z.B. Mein Lieblingsgericht">
+            </div>
+            <div class="input-group">
+                <label>Kalorien (pro 100g)</label>
+                <input type="number" id="customCalories" placeholder="z.B. 250">
+            </div>
+            <div class="input-group">
+                <label>Protein (g pro 100g)</label>
+                <input type="number" id="customProtein" placeholder="z.B. 20">
+            </div>
+            <div class="input-group">
+                <label>Kohlenhydrate (g pro 100g)</label>
+                <input type="number" id="customCarbs" placeholder="z.B. 30">
+            </div>
+            <div class="input-group">
+                <label>Fett (g pro 100g)</label>
+                <input type="number" id="customFat" placeholder="z.B. 10">
+            </div>
+            <button class="btn" onclick="saveCustomFood()">💾 Speichern</button>
+        </div>
+    </div>
+
+    <script>
+        // Ihre persönliche Lebensmittel-Datenbank aus der Kalorientabelle
+        const userFoodDatabase = [
+  {"name": "Vollkornbrot", "calories": 220, "protein": 7.0, "carbs": 39.6, "fat": 1.8, "category": "BROT & BACKWAREN", "defaultPortion": "1 Scheibe (50g)"},
+  {"name": "Mischbrot", "calories": 240, "protein": 7.7, "carbs": 43.2, "fat": 1.9, "category": "BROT & BACKWAREN", "defaultPortion": "1 Scheibe (50g)"},
+  {"name": "Weißbrot/Toast", "calories": 260, "protein": 8.3, "carbs": 46.8, "fat": 2.1, "category": "BROT & BACKWAREN", "defaultPortion": "1 Scheibe (25g)"},
+  {"name": "Brötchen", "calories": 267, "protein": 8.5, "carbs": 48.1, "fat": 2.1, "category": "BROT & BACKWAREN", "defaultPortion": "1 Stück (60g)"},
+  {"name": "Laugenbrezel", "calories": 257, "protein": 8.2, "carbs": 46.3, "fat": 2.1, "category": "BROT & BACKWAREN", "defaultPortion": "1 Stück (70g)"},
+  {"name": "Croissant", "calories": 360, "protein": 11.5, "carbs": 64.8, "fat": 2.9, "category": "BROT & BACKWAREN", "defaultPortion": "1 Stück (50g)"},
+  {"name": "Butter", "calories": 750, "protein": 3.0, "carbs": 15.0, "fat": 45.0, "category": "AUFSTRICHE & BELAG", "defaultPortion": "10g (1 TL)"},
+  {"name": "Margarine", "calories": 720, "protein": 2.9, "carbs": 14.4, "fat": 43.2, "category": "AUFSTRICHE & BELAG", "defaultPortion": "10g (1 TL)"},
+  {"name": "Marmelade", "calories": 260, "protein": 1.0, "carbs": 5.2, "fat": 15.6, "category": "AUFSTRICHE & BELAG", "defaultPortion": "20g (1 EL)"},
+  {"name": "Nutella", "calories": 540, "protein": 2.2, "carbs": 10.8, "fat": 32.4, "category": "AUFSTRICHE & BELAG", "defaultPortion": "15g (1 EL)"},
+  {"name": "Honig", "calories": 320, "protein": 1.3, "carbs": 6.4, "fat": 19.2, "category": "AUFSTRICHE & BELAG", "defaultPortion": "20g (1 EL)"},
+  {"name": "Frischkäse natur", "calories": 270, "protein": 1.1, "carbs": 5.4, "fat": 16.2, "category": "AUFSTRICHE & BELAG", "defaultPortion": "30g (1 EL)"},
+  {"name": "Kochschinken", "calories": 117, "protein": 7.0, "carbs": 0.7, "fat": 5.3, "category": "WURST & KÄSE", "defaultPortion": "30g (2 Scheiben)"},
+  {"name": "Salami", "calories": 400, "protein": 12.0, "carbs": 2.4, "fat": 18.0, "category": "WURST & KÄSE", "defaultPortion": "30g (5 Scheiben)"},
+  {"name": "Leberwurst", "calories": 343, "protein": 10.3, "carbs": 2.1, "fat": 15.4, "category": "WURST & KÄSE", "defaultPortion": "30g (1 EL)"},
+  {"name": "Gouda", "calories": 350, "protein": 10.5, "carbs": 2.1, "fat": 15.8, "category": "WURST & KÄSE", "defaultPortion": "30g (1 Scheibe)"},
+  {"name": "Emmentaler", "calories": 400, "protein": 12.0, "carbs": 2.4, "fat": 18.0, "category": "WURST & KÄSE", "defaultPortion": "30g (1 Scheibe)"},
+  {"name": "Mozzarella", "calories": 250, "protein": 7.5, "carbs": 1.5, "fat": 11.3, "category": "WURST & KÄSE", "defaultPortion": "125g (1 Kugel)"},
+  {"name": "Frischkäse light", "calories": 133, "protein": 4.0, "carbs": 0.8, "fat": 6.0, "category": "WURST & KÄSE", "defaultPortion": "30g (1 EL)"},
+  {"name": "Apfel", "calories": 53, "protein": 0.3, "carbs": 6.4, "fat": 0.1, "category": "OBST", "defaultPortion": "1 Stück (150g)"},
+  {"name": "Banane", "calories": 93, "protein": 0.5, "carbs": 11.2, "fat": 0.2, "category": "OBST", "defaultPortion": "1 Stück (120g)"},
+  {"name": "Orange", "calories": 47, "protein": 0.3, "carbs": 5.6, "fat": 0.1, "category": "OBST", "defaultPortion": "1 Stück (150g)"},
+  {"name": "Erdbeeren", "calories": 32, "protein": 0.2, "carbs": 3.8, "fat": 0.1, "category": "OBST", "defaultPortion": "100g"},
+  {"name": "Weintrauben", "calories": 69, "protein": 0.3, "carbs": 8.3, "fat": 0.1, "category": "OBST", "defaultPortion": "100g"},
+  {"name": "Kiwi", "calories": 51, "protein": 0.3, "carbs": 6.1, "fat": 0.1, "category": "OBST", "defaultPortion": "1 Stück (100g)"},
+  {"name": "Birne", "calories": 57, "protein": 0.3, "carbs": 6.8, "fat": 0.1, "category": "OBST", "defaultPortion": "1 Stück (150g)"},
+  {"name": "Gurke", "calories": 15, "protein": 0.6, "carbs": 1.8, "fat": 0.1, "category": "GEMÜSE", "defaultPortion": "100g"},
+  {"name": "Tomaten", "calories": 18, "protein": 0.7, "carbs": 1.8, "fat": 0.1, "category": "GEMÜSE", "defaultPortion": "100g"},
+  {"name": "Paprika", "calories": 31, "protein": 0.7, "carbs": 1.9, "fat": 0.1, "category": "GEMÜSE", "defaultPortion": "100g"},
+  {"name": "Karotten", "calories": 41, "protein": 0.8, "carbs": 2.5, "fat": 0.1, "category": "GEMÜSE", "defaultPortion": "100g"},
+  {"name": "Brokkoli", "calories": 34, "protein": 0.8, "carbs": 2.0, "fat": 0.1, "category": "GEMÜSE", "defaultPortion": "100g"},
+  {"name": "Salat", "calories": 13, "protein": 0.5, "carbs": 1.6, "fat": 0.0, "category": "GEMÜSE", "defaultPortion": "100g"},
+  {"name": "Vollmilch 3,5%", "calories": 65, "protein": 3.5, "carbs": 5.0, "fat": 3.5, "category": "MILCHPRODUKTE", "defaultPortion": "100ml"},
+  {"name": "Fettarme Milch 1,5%", "calories": 47, "protein": 3.5, "carbs": 5.0, "fat": 3.5, "category": "MILCHPRODUKTE", "defaultPortion": "100ml"},
+  {"name": "Naturjoghurt 3,5%", "calories": 65, "protein": 3.5, "carbs": 5.0, "fat": 3.5, "category": "MILCHPRODUKTE", "defaultPortion": "150g"},
+  {"name": "Magerquark", "calories": 71, "protein": 3.5, "carbs": 5.0, "fat": 3.5, "category": "MILCHPRODUKTE", "defaultPortion": "150g"},
+  {"name": "Griechischer Joghurt", "calories": 97, "protein": 3.5, "carbs": 5.0, "fat": 3.5, "category": "MILCHPRODUKTE", "defaultPortion": "150g"},
+  {"name": "Pudding", "calories": 120, "protein": 3.5, "carbs": 5.0, "fat": 3.5, "category": "MILCHPRODUKTE", "defaultPortion": "125g"},
+  {"name": "Walnüsse", "calories": 667, "protein": 10.0, "carbs": 13.3, "fat": 33.4, "category": "NÜSSE & SNACKS", "defaultPortion": "30g (Handvoll)"},
+  {"name": "Mandeln", "calories": 600, "protein": 9.0, "carbs": 12.0, "fat": 30.0, "category": "NÜSSE & SNACKS", "defaultPortion": "30g (Handvoll)"},
+  {"name": "Erdnüsse", "calories": 567, "protein": 8.5, "carbs": 11.3, "fat": 28.4, "category": "NÜSSE & SNACKS", "defaultPortion": "30g (Handvoll)"},
+  {"name": "Schokolade Vollmilch", "calories": 536, "protein": 8.0, "carbs": 10.7, "fat": 26.8, "category": "NÜSSE & SNACKS", "defaultPortion": "25g (5 Stücke)"},
+  {"name": "Chips", "calories": 536, "protein": 8.0, "carbs": 10.7, "fat": 26.8, "category": "NÜSSE & SNACKS", "defaultPortion": "30g (kleine Tüte)"},
+  {"name": "Studentenfutter", "calories": 467, "protein": 7.0, "carbs": 9.3, "fat": 23.4, "category": "NÜSSE & SNACKS", "defaultPortion": "30g (Handvoll)"},
+  {"name": "Müsliriegel", "calories": 400, "protein": 6.0, "carbs": 8.0, "fat": 20.0, "category": "NÜSSE & SNACKS", "defaultPortion": "25g (1 Riegel)"},
+  {"name": "Hähnchenbrust", "calories": 110, "protein": 27.5, "carbs": 0.0, "fat": 5.5, "category": "FLEISCH & FISCH", "defaultPortion": "150g"},
+  {"name": "Rindersteak", "calories": 200, "protein": 50.0, "carbs": 0.0, "fat": 10.0, "category": "FLEISCH & FISCH", "defaultPortion": "150g"},
+  {"name": "Schweineschnitzel", "calories": 147, "protein": 36.8, "carbs": 0.0, "fat": 7.4, "category": "FLEISCH & FISCH", "defaultPortion": "150g"},
+  {"name": "Lachs", "calories": 180, "protein": 45.0, "carbs": 0.0, "fat": 9.0, "category": "FLEISCH & FISCH", "defaultPortion": "150g"},
+  {"name": "Thunfisch (Dose)", "calories": 100, "protein": 25.0, "carbs": 0.0, "fat": 5.0, "category": "FLEISCH & FISCH", "defaultPortion": "100g (1 Dose)"},
+  {"name": "Ei", "calories": 140, "protein": 35.0, "carbs": 0.0, "fat": 7.0, "category": "FLEISCH & FISCH", "defaultPortion": "1 Stück (60g)"},
+  {"name": "Hackfleisch gemischt", "calories": 247, "protein": 61.8, "carbs": 0.0, "fat": 12.4, "category": "FLEISCH & FISCH", "defaultPortion": "150g"},
+  {"name": "Reis gekocht", "calories": 110, "protein": 3.3, "carbs": 30.8, "fat": 0.6, "category": "BEILAGEN", "defaultPortion": "150g"},
+  {"name": "Nudeln gekocht", "calories": 127, "protein": 3.8, "carbs": 35.6, "fat": 0.6, "category": "BEILAGEN", "defaultPortion": "150g"},
+  {"name": "Kartoffeln gekocht", "calories": 105, "protein": 3.2, "carbs": 29.4, "fat": 0.5, "category": "BEILAGEN", "defaultPortion": "200g"},
+  {"name": "Pommes frites", "calories": 312, "protein": 9.4, "carbs": 87.4, "fat": 1.6, "category": "BEILAGEN", "defaultPortion": "150g"},
+  {"name": "Bratkartoffeln", "calories": 150, "protein": 4.5, "carbs": 42.0, "fat": 0.8, "category": "BEILAGEN", "defaultPortion": "200g"},
+  {"name": "Pizza Salami", "calories": 250, "protein": 12.0, "carbs": 30.0, "fat": 12.0, "category": "FERTIGGERICHTE & FAST FOOD", "defaultPortion": "1/2 Pizza (200g)"},
+  {"name": "Döner Kebab", "calories": 650, "protein": 39.0, "carbs": 97.5, "fat": 39.0, "category": "FERTIGGERICHTE & FAST FOOD", "defaultPortion": "1 Portion (350g)"},
+  {"name": "Burger mit Pommes", "calories": 867, "protein": 52.0, "carbs": 130.1, "fat": 52.0, "category": "FERTIGGERICHTE & FAST FOOD", "defaultPortion": "1 Menü (400g)"},
+  {"name": "Currywurst mit Pommes", "calories": 700, "protein": 42.0, "carbs": 105.0, "fat": 42.0, "category": "FERTIGGERICHTE & FAST FOOD", "defaultPortion": "1 Portion (350g)"},
+  {"name": "Lasagne", "calories": 600, "protein": 36.0, "carbs": 90.0, "fat": 36.0, "category": "FERTIGGERICHTE & FAST FOOD", "defaultPortion": "1 Portion (400g)"},
+  {"name": "Tiefkühlpizza", "calories": 600, "protein": 36.0, "carbs": 90.0, "fat": 36.0, "category": "FERTIGGERICHTE & FAST FOOD", "defaultPortion": "1 Stück (300g)"},
+  {"name": "Cola", "calories": 42, "protein": 0.0, "carbs": 10.5, "fat": 0.0, "category": "Cola Light", "defaultPortion": "100ml"},
+  {"name": "Orangensaft", "calories": 45, "protein": 0.0, "carbs": 11.3, "fat": 0.0, "category": "Cola Light", "defaultPortion": "100ml"},
+  {"name": "Apfelsaft", "calories": 46, "protein": 0.0, "carbs": 11.5, "fat": 0.0, "category": "Cola Light", "defaultPortion": "100ml"},
+  {"name": "Bier", "calories": 43, "protein": 0.0, "carbs": 10.8, "fat": 0.0, "category": "Cola Light", "defaultPortion": "100ml"},
+  {"name": "Weißwein", "calories": 70, "protein": 0.0, "carbs": 17.5, "fat": 0.0, "category": "Cola Light", "defaultPortion": "100ml"},
+  {"name": "Rotwein", "calories": 68, "protein": 0.0, "carbs": 17.0, "fat": 0.0, "category": "Cola Light", "defaultPortion": "100ml"},
+  {"name": "Kaffee schwarz", "calories": 2, "protein": 0.0, "carbs": 0.5, "fat": 0.0, "category": "Cola Light", "defaultPortion": "100ml"}
+];
+
+        // App State
+        let appData = {
+            entries: [],
+            customFoods: [],
+            reminders: [],
+            favorites: [],
+            settings: {
+                age: 56,
+                weight: 110,
+                height: 186,
+                gender: 'male',
+                activityLevel: 1.55,
+                dailyCalorieTarget: 0
+            }
+        };
+
+        let selectedFood = null;
+
+        // Initialize App
+        function initApp() {
+            loadData();
+            calculateDailyCalories();
+            updateDateDisplay();
+            updateDashboard();
+            updateWeekView();
+            updateRemindersList();
+            checkReminders();
+            
+            // Check reminders every minute
+            setInterval(checkReminders, 60000);
+        }
+
+        // Load data from localStorage
+        function loadData() {
+            const data = localStorage.getItem('nutritionTrackerData');
+            if (data) {
+                try {
+                    appData = JSON.parse(data);
+                    if (appData.settings.activityLevel) {
+                        document.getElementById('activityLevel').value = appData.settings.activityLevel;
+                    }
+                    if (appData.settings.dailyCalorieTarget) {
+                        document.getElementById('dailyCalorieTarget').value = appData.settings.dailyCalorieTarget;
+                    }
+                } catch (e) {
+                    console.error('Error loading data:', e);
+                }
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            try {
+                localStorage.setItem('nutritionTrackerData', JSON.stringify(appData));
+            } catch (e) {
+                console.error('Error saving data:', e);
+                alert('Fehler beim Speichern der Daten. Eventuell ist der Speicher voll.');
+            }
+        }
+
+        // Calculate daily calorie needs
+        function calculateDailyCalories() {
+            const { age, weight, height, gender, activityLevel } = appData.settings;
+            let bmr;
+            
+            if (gender === 'male') {
+                bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+            } else {
+                bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+            }
+            
+            const tdee = Math.round(bmr * activityLevel);
+            if (!appData.settings.dailyCalorieTarget || appData.settings.dailyCalorieTarget === 0) {
+                appData.settings.dailyCalorieTarget = tdee;
+            }
+            saveData();
+            return tdee;
+        }
+
+        // Update date display
+        function updateDateDisplay() {
+            const today = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('dateDisplay').textContent = today.toLocaleDateString('de-DE', options);
+        }
+
+        // Search food
+        function searchFood() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const results = document.getElementById('searchResults');
+            
+            if (query.length < 2) {
+                results.innerHTML = '<div class="search-item" style="text-align: center; color: #9ca3af;">Bitte mindestens 2 Zeichen eingeben...</div>';
+                return;
+            }
+            
+            const allFoods = [...userFoodDatabase, ...appData.customFoods];
+            const filtered = allFoods.filter(food => 
+                food.name.toLowerCase().includes(query) ||
+                (food.category && food.category.toLowerCase().includes(query))
+            );
+            
+            if (filtered.length === 0) {
+                results.innerHTML = '<div class="search-item" style="text-align: center;">❌ Keine Ergebnisse gefunden</div>';
+                return;
+            }
+            
+            results.innerHTML = filtered.map(food => `
+                <div class="search-item" onclick='selectFood(${JSON.stringify(food).replace(/'/g, "\\'")})'> 
+                    <div class="food-name">
+                        ${food.name}
+                        <span class="category-badge">${food.category || 'Eigene'}</span>
+                    </div>
+                    <div class="food-details">
+                        ${food.calories} kcal/100g | 
+                        P: ${food.protein}g | 
+                        K: ${food.carbs}g | 
+                        F: ${food.fat}g
+                    </div>
+                    ${food.defaultPortion ? `<div class="food-portion">Übliche Portion: ${food.defaultPortion}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Select food from search
+        function selectFood(food) {
+            selectedFood = food;
+            closeModal('searchModal');
+            
+            document.getElementById('selectedFoodName').textContent = food.name;
+            document.getElementById('selectedFoodPortion').textContent = 
+                food.defaultPortion ? `Übliche Portion: ${food.defaultPortion}` : 'Pro 100g';
+            document.getElementById('foodAmount').value = 100;
+            
+            updateFoodPreview();
+            showModal('addFoodModal');
+        }
+
+        // Update food preview
+        function updateFoodPreview() {
+            if (!selectedFood) return;
+            
+            const amount = parseFloat(document.getElementById('foodAmount').value) || 100;
+            const multiplier = amount / 100;
+            
+            document.getElementById('previewCalories').textContent = Math.round(selectedFood.calories * multiplier);
+            document.getElementById('previewProtein').textContent = (selectedFood.protein * multiplier).toFixed(1);
+            document.getElementById('previewCarbs').textContent = (selectedFood.carbs * multiplier).toFixed(1);
+            document.getElementById('previewFat').textContent = (selectedFood.fat * multiplier).toFixed(1);
+        }
+
+        // Add food entry
+        function addFoodEntry() {
+            if (!selectedFood) return;
+            
+            const amount = parseFloat(document.getElementById('foodAmount').value);
+            if (!amount || amount <= 0) {
+                alert('Bitte geben Sie eine gültige Menge ein.');
+                return;
+            }
+            
+            const multiplier = amount / 100;
+            
+            const entry = {
+                id: Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                name: selectedFood.name,
+                amount: amount,
+                calories: Math.round(selectedFood.calories * multiplier),
+                protein: parseFloat((selectedFood.protein * multiplier).toFixed(1)),
+                carbs: parseFloat((selectedFood.carbs * multiplier).toFixed(1)),
+                fat: parseFloat((selectedFood.fat * multiplier).toFixed(1)),
+                timestamp: new Date().toISOString()
+            };
+            
+            appData.entries.push(entry);
+            saveData();
+            updateDashboard();
+            closeModal('addFoodModal');
+            selectedFood = null;
+        }
+
+        // Add to favorites
+        function addToFavorites(entryId) {
+            const entry = appData.entries.find(e => e.id === entryId);
+            if (!entry) return;
+            
+            // Check if already in favorites
+            const exists = appData.favorites.some(f => 
+                f.name === entry.name && f.amount === entry.amount
+            );
+            
+            if (exists) {
+                alert('Dieses Lebensmittel ist bereits in Ihren Favoriten!');
+                return;
+            }
+            
+            const favorite = {
+                name: entry.name,
+                amount: entry.amount,
+                calories: entry.calories,
+                protein: entry.protein,
+                carbs: entry.carbs,
+                fat: entry.fat
+            };
+            
+            appData.favorites.push(favorite);
+            saveData();
+            updateDashboard();
+            alert('✅ Zu Favoriten hinzugefügt!');
+        }
+
+        // Add favorite entry
+        function addFavoriteEntry(fav) {
+            const entry = {
+                id: Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                ...fav,
+                timestamp: new Date().toISOString()
+            };
+            
+            appData.entries.push(entry);
+            saveData();
+            updateDashboard();
+        }
+
+        // Delete entry
+        function deleteEntry(id) {
+            if (confirm('Eintrag wirklich löschen?')) {
+                appData.entries = appData.entries.filter(e => e.id !== id);
+                saveData();
+                updateDashboard();
+            }
+        }
+
+        // Delete favorite
+        function deleteFavorite(index) {
+            if (confirm('Favorit wirklich löschen?')) {
+                appData.favorites.splice(index, 1);
+                saveData();
+                updateDashboard();
+            }
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayEntries = appData.entries.filter(e => e.date === today);
+            
+            // Calculate totals
+            const totals = todayEntries.reduce((acc, entry) => ({
+                calories: acc.calories + entry.calories,
+                protein: acc.protein + entry.protein,
+                carbs: acc.carbs + entry.carbs,
+                fat: acc.fat + entry.fat
+            }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+            
+            // Update header stats
+            document.getElementById('caloriesConsumed').textContent = totals.calories;
+            document.getElementById('caloriesBurned').textContent = appData.settings.dailyCalorieTarget;
+            
+            const remaining = appData.settings.dailyCalorieTarget - totals.calories;
+            document.getElementById('calorieBalance').textContent = remaining;
+            
+            const progress = Math.min((totals.calories / appData.settings.dailyCalorieTarget) * 100, 100);
+            document.getElementById('calorieProgress').style.width = progress + '%';
+            
+            // Update macros
+            const proteinTarget = Math.round(appData.settings.weight * 1.8);
+            const fatTarget = Math.round((appData.settings.dailyCalorieTarget * 0.25) / 9);
+            const carbsTarget = Math.round((appData.settings.dailyCalorieTarget - (proteinTarget * 4) - (fatTarget * 9)) / 4);
+            
+            document.getElementById('proteinTarget').textContent = proteinTarget;
+            document.getElementById('carbsTarget').textContent = carbsTarget;
+            document.getElementById('fatTarget').textContent = fatTarget;
+            
+            document.getElementById('proteinCurrent').textContent = Math.round(totals.protein);
+            document.getElementById('carbsCurrent').textContent = Math.round(totals.carbs);
+            document.getElementById('fatCurrent').textContent = Math.round(totals.fat);
+            
+            document.getElementById('proteinBar').style.width = Math.min((totals.protein / proteinTarget) * 100, 100) + '%';
+            document.getElementById('carbsBar').style.width = Math.min((totals.carbs / carbsTarget) * 100, 100) + '%';
+            document.getElementById('fatBar').style.width = Math.min((totals.fat / fatTarget) * 100, 100) + '%';
+            
+            // Update entries list
+            const entriesDiv = document.getElementById('todayEntries');
+            if (todayEntries.length === 0) {
+                entriesDiv.innerHTML = '<div class="empty-state">Noch keine Einträge heute 😊<br><br>Klicken Sie auf "Lebensmittel suchen" um zu starten!</div>';
+            } else {
+                entriesDiv.innerHTML = todayEntries.map(entry => `
+                    <div class="food-entry">
+                        <div class="food-info">
+                            <div class="food-name">${entry.name} (${entry.amount}g)</div>
+                            <div class="food-details">${entry.calories} kcal | P: ${entry.protein}g | K: ${entry.carbs}g | F: ${entry.fat}g</div>
+                        </div>
+                        <div>
+                            <button class="fav-btn" onclick="addToFavorites(${entry.id})" title="Zu Favoriten">⭐</button>
+                            <button class="delete-btn" onclick="deleteEntry(${entry.id})">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Update favorites
+            updateFavoritesList();
+        }
+
+        // Update favorites list
+        function updateFavoritesList() {
+            const favoritesDiv = document.getElementById('favoritesList');
+            
+            if (appData.favorites.length === 0) {
+                favoritesDiv.innerHTML = '<div class="empty-state">Keine Favoriten gespeichert 🌟<br><br>Fügen Sie häufig genutzte Lebensmittel zu Favoriten hinzu!</div>';
+            } else {
+                favoritesDiv.innerHTML = appData.favorites.map((fav, index) => `
+                    <div class="food-entry">
+                        <div class="food-info">
+                            <div class="food-name">${fav.name} (${fav.amount}g)</div>
+                            <div class="food-details">${fav.calories} kcal | P: ${fav.protein}g | K: ${fav.carbs}g | F: ${fav.fat}g</div>
+                        </div>
+                        <div>
+                            <button class="btn" style="width: auto; padding: 8px 16px; margin: 0 8px 0 0;" onclick='addFavoriteEntry(${JSON.stringify(fav).replace(/'/g, "\\'")})'>Hinzufügen</button>
+                            <button class="delete-btn" onclick="deleteFavorite(${index})">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Update week view
+        function updateWeekView() {
+            const weekDiv = document.getElementById('weekView');
+            const today = new Date();
+            const weekData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                const dayEntries = appData.entries.filter(e => e.date === dateStr);
+                const totalCal = dayEntries.reduce((sum, e) => sum + e.calories, 0);
+                
+                weekData.push({
+                    label: date.toLocaleDateString('de-DE', { weekday: 'short' }),
+                    calories: totalCal
+                });
+            }
+            
+            weekDiv.innerHTML = weekData.map(day => `
+                <div class="day-card">
+                    <div class="day-label">${day.label}</div>
+                    <div class="day-calories">${day.calories}</div>
+                </div>
+            `).join('');
+        }
+
+        // Save settings
+        function saveSettings() {
+            const activityLevel = parseFloat(document.getElementById('activityLevel').value);
+            const customTarget = parseInt(document.getElementById('dailyCalorieTarget').value);
+            
+            appData.settings.activityLevel = activityLevel;
+            
+            if (customTarget && customTarget > 0) {
+                appData.settings.dailyCalorieTarget = customTarget;
+            } else {
+                calculateDailyCalories();
+            }
+            
+            saveData();
+            updateDashboard();
+            alert('✅ Einstellungen gespeichert!');
+        }
+
+        // Reset all data
+        function resetData() {
+            if (confirm('⚠️ ACHTUNG: Alle Daten werden gelöscht!\n\nMöchten Sie wirklich alle Einträge, Favoriten und Einstellungen löschen?')) {
+                if (confirm('Sind Sie sicher? Diese Aktion kann nicht rückgängig gemacht werden!')) {
+                    localStorage.removeItem('nutritionTrackerData');
+                    location.reload();
+                }
+            }
+        }
+
+        // Save custom food
+        function saveCustomFood() {
+            const name = document.getElementById('customFoodName').value.trim();
+            const calories = parseFloat(document.getElementById('customCalories').value);
+            const protein = parseFloat(document.getElementById('customProtein').value);
+            const carbs = parseFloat(document.getElementById('customCarbs').value);
+            const fat = parseFloat(document.getElementById('customFat').value);
+            
+            if (!name || !calories || isNaN(protein) || isNaN(carbs) || isNaN(fat)) {
+                alert('Bitte füllen Sie alle Felder korrekt aus.');
+                return;
+            }
+            
+            const customFood = {
+                name,
+                calories,
+                protein,
+                carbs,
+                fat,
+                category: 'Eigene Lebensmittel'
+            };
+            
+            appData.customFoods.push(customFood);
+            saveData();
+            closeModal('customFoodModal');
+            
+            // Reset form
+            document.getElementById('customFoodName').value = '';
+            document.getElementById('customCalories').value = '';
+            document.getElementById('customProtein').value = '';
+            document.getElementById('customCarbs').value = '';
+            document.getElementById('customFat').value = '';
+            
+            alert('✅ Eigenes Lebensmittel gespeichert!');
+        }
+
+        // Add reminder
+        function addReminder() {
+            const time = document.getElementById('reminderTime').value;
+            
+            if (!time) {
+                alert('Bitte wählen Sie eine Uhrzeit.');
+                return;
+            }
+            
+            appData.reminders.push({
+                id: Date.now(),
+                time: time,
+                enabled: true
+            });
+            
+            saveData();
+            updateRemindersList();
+            document.getElementById('reminderTime').value = '';
+        }
+
+        // Update reminders list
+        function updateRemindersList() {
+            const listDiv = document.getElementById('reminderList');
+            
+            if (appData.reminders.length === 0) {
+                listDiv.innerHTML = '<div class="empty-state">Keine Erinnerungen eingerichtet 🔔</div>';
+            } else {
+                listDiv.innerHTML = appData.reminders.map(rem => `
+                    <div class="food-entry">
+                        <div>
+                            <div style="font-weight: 600;">🔔 ${rem.time} Uhr</div>
+                            <div style="font-size: 13px; color: #6b7280;">Täglich</div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteReminder(${rem.id})">🗑️</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Delete reminder
+        function deleteReminder(id) {
+            appData.reminders = appData.reminders.filter(r => r.id !== id);
+            saveData();
+            updateRemindersList();
+        }
+
+        // Check reminders
+        function checkReminders() {
+            const now = new Date();
+            const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            
+            appData.reminders.forEach(reminder => {
+                if (reminder.enabled && reminder.time === currentTime) {
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification('Ernährungs-Tracker', {
+                            body: 'Zeit für eine Mahlzeit! Vergessen Sie nicht, Ihre Lebensmittel einzutragen.',
+                            icon: '🍽️'
+                        });
+                    } else {
+                        alert('🔔 Zeit für eine Mahlzeit! 🍽️');
+                    }
+                }
+            });
+        }
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Switch view
+        function switchView(view) {
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(view + 'View').style.display = 'block';
+            event.currentTarget.classList.add('active');
+            
+            if (view === 'stats') {
+                updateWeekView();
+            }
+        }
+
+        // Modal functions
+        function showModal(id) {
+            document.getElementById(id).classList.add('active');
+            if (id === 'searchModal') {
+                setTimeout(() => document.getElementById('searchInput').focus(), 100);
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            if (id === 'searchModal') {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchResults').innerHTML = '';
+            }
+        }
+
+        function showSearchModal() {
+            showModal('searchModal');
+        }
+
+        function showCustomFoodModal() {
+            showModal('customFoodModal');
+        }
+
+        // Initialize app on load
+        window.addEventListener('load', initApp);
+        
+        // Close modals on background click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
