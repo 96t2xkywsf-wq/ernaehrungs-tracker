@@ -524,7 +524,36 @@
                         </select>
                     </div>
                     <button class="btn" onclick="saveSettings()">💾 Einstellungen speichern</button>
-                    <button class="btn btn-danger" onclick="resetData()" style="margin-top: 20px;">🗑️ Alle Daten löschen</button>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+                        <h2>Datensicherung</h2>
+                        <button class="btn btn-secondary" onclick="exportData()">📥 Daten exportieren (Backup)</button>
+                        <button class="btn btn-secondary" onclick="importData()">📤 Daten importieren (Wiederherstellen)</button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleFileImport(event)">
+                    </div>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+                        <h2>Meine eigenen Lebensmittel</h2>
+                        <div id="customFoodsList"></div>
+                    </div>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+                        <h2>App-Information</h2>
+                        <div style="background: #f9fafb; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                            <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">
+                                <strong>Version:</strong> <span id="appVersion"></span>
+                            </div>
+                            <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">
+                                <strong>Letzte Aktualisierung:</strong> <span id="appReleaseDate"></span>
+                            </div>
+                            <div style="font-size: 14px; color: #6b7280;">
+                                <strong>Gespeicherte Einträge:</strong> <span id="totalEntries"></span>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="checkForUpdates()">🔄 Nach Updates suchen</button>
+                    </div>
+                    
+                    <button class="btn btn-danger" onclick="resetData()" style="margin-top: 30px;">🗑️ Alle Daten löschen</button>
                 </div>
             </div>
 
@@ -640,6 +669,10 @@
     </div>
 
     <script>
+        // App Version für Update-Management
+        const APP_VERSION = "1.1.0";
+        const APP_RELEASE_DATE = "2025-01-03";
+        
         // Ihre persönliche Lebensmittel-Datenbank aus der Kalorientabelle
         const userFoodDatabase = [
   {"name": "Vollkornbrot", "calories": 220, "protein": 7.0, "carbs": 39.6, "fat": 1.8, "category": "BROT & BACKWAREN", "defaultPortion": "1 Scheibe (50g)"},
@@ -734,16 +767,131 @@
 
         // Initialize App
         function initApp() {
+            checkAndMigrateData();
             loadData();
             calculateDailyCalories();
             updateDateDisplay();
             updateDashboard();
             updateWeekView();
             updateRemindersList();
+            updateAppInfo();
             checkReminders();
             
             // Check reminders every minute
             setInterval(checkReminders, 60000);
+        }
+
+        // Check and migrate data if needed
+        function checkAndMigrateData() {
+            const savedVersion = localStorage.getItem('appVersion');
+            
+            if (!savedVersion) {
+                // Erste Installation
+                localStorage.setItem('appVersion', APP_VERSION);
+                localStorage.setItem('installDate', new Date().toISOString());
+                return;
+            }
+            
+            if (savedVersion !== APP_VERSION) {
+                console.log(`Updating from ${savedVersion} to ${APP_VERSION}`);
+                // Hier können zukünftig Daten-Migrationen stattfinden
+                migrateData(savedVersion, APP_VERSION);
+                localStorage.setItem('appVersion', APP_VERSION);
+            }
+        }
+
+        // Data migration function (for future updates)
+        function migrateData(fromVersion, toVersion) {
+            console.log(`Migrating data from ${fromVersion} to ${toVersion}`);
+            // Beispiel für zukünftige Migrationen:
+            // if (fromVersion === "1.0.0" && toVersion === "1.1.0") {
+            //     // Spezifische Migrations-Logik
+            // }
+        }
+
+        // Update app info display
+        function updateAppInfo() {
+            document.getElementById('appVersion').textContent = APP_VERSION;
+            document.getElementById('appReleaseDate').textContent = APP_RELEASE_DATE;
+            document.getElementById('totalEntries').textContent = appData.entries.length;
+        }
+
+        // Export data as JSON
+        function exportData() {
+            const exportData = {
+                version: APP_VERSION,
+                exportDate: new Date().toISOString(),
+                data: appData
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            const filename = `ernaehrung-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.download = filename;
+            link.click();
+            
+            alert('✅ Backup erfolgreich heruntergeladen!\n\nDatei: ' + filename + '\n\nSpeichern Sie diese Datei sicher (z.B. in iCloud Drive).');
+        }
+
+        // Import data from file
+        function importData() {
+            if (!confirm('⚠️ ACHTUNG: Beim Import werden Ihre aktuellen Daten überschrieben!\n\nMöchten Sie vorher ein Backup erstellen?')) {
+                exportData();
+                setTimeout(() => {
+                    if (confirm('Backup erstellt. Jetzt Import durchführen?')) {
+                        document.getElementById('importFile').click();
+                    }
+                }, 1000);
+            } else {
+                document.getElementById('importFile').click();
+            }
+        }
+
+        // Handle file import
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    
+                    // Validate import
+                    if (!imported.data || !imported.version) {
+                        throw new Error('Ungültiges Backup-Format');
+                    }
+                    
+                    // Restore data
+                    appData = imported.data;
+                    saveData();
+                    
+                    // Update display
+                    updateDashboard();
+                    updateWeekView();
+                    updateRemindersList();
+                    updateAppInfo();
+                    
+                    alert(`✅ Daten erfolgreich importiert!\n\nBackup-Version: ${imported.version}\nBackup-Datum: ${new Date(imported.exportDate).toLocaleDateString('de-DE')}\n\nEinträge: ${appData.entries.length}\nFavoriten: ${appData.favorites.length}\nEigene Lebensmittel: ${appData.customFoods.length}`);
+                    
+                } catch (error) {
+                    alert('❌ Fehler beim Importieren der Daten!\n\nBitte stellen Sie sicher, dass Sie eine gültige Backup-Datei verwenden.\n\nFehler: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset file input
+            event.target.value = '';
+        }
+
+        // Check for updates (future feature)
+        function checkForUpdates() {
+            const currentVersion = localStorage.getItem('appVersion') || 'Unbekannt';
+            
+            alert(`🔄 Update-Check\n\nAktuelle Version: ${currentVersion}\nNeueste Version: ${APP_VERSION}\n\n${currentVersion === APP_VERSION ? '✅ Sie nutzen die neueste Version!' : '⚠️ Bitte laden Sie die Seite neu, um Updates zu erhalten.'}\n\nTipp: Drücken Sie Cmd+R (Mac) oder Strg+R (Windows) oder wischen Sie die App nach unten, um zu aktualisieren.`);
         }
 
         // Load data from localStorage
@@ -1019,6 +1167,9 @@
             
             // Update favorites
             updateFavoritesList();
+            
+            // Update app info
+            updateAppInfo();
         }
 
         // Update favorites list
@@ -1068,6 +1219,41 @@
                     <div class="day-calories">${day.calories}</div>
                 </div>
             `).join('');
+        }
+
+        // Update custom foods list
+        function updateCustomFoodsList() {
+            const listDiv = document.getElementById('customFoodsList');
+            
+            if (appData.customFoods.length === 0) {
+                listDiv.innerHTML = '<div class="empty-state">Keine eigenen Lebensmittel erstellt 🍎<br><br>Erstellen Sie eigene Lebensmittel unter "Eigenes Lebensmittel erstellen"</div>';
+            } else {
+                listDiv.innerHTML = appData.customFoods.map((food, index) => `
+                    <div class="food-entry">
+                        <div class="food-info">
+                            <div class="food-name">${food.name}</div>
+                            <div class="food-details">
+                                ${food.calories} kcal/100g | 
+                                P: ${food.protein}g | 
+                                K: ${food.carbs}g | 
+                                F: ${food.fat}g
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteCustomFood(${index})" title="Lebensmittel löschen">🗑️</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Delete custom food
+        function deleteCustomFood(index) {
+            const food = appData.customFoods[index];
+            if (confirm(`❌ Lebensmittel löschen?\n\n"${food.name}" wird aus der Liste entfernt.\n\nBereits eingetragene Mahlzeiten mit diesem Lebensmittel bleiben erhalten.`)) {
+                appData.customFoods.splice(index, 1);
+                saveData();
+                updateCustomFoodsList();
+                alert('✅ Lebensmittel gelöscht!');
+            }
         }
 
         // Save settings
@@ -1122,6 +1308,7 @@
             
             appData.customFoods.push(customFood);
             saveData();
+            updateCustomFoodsList();
             closeModal('customFoodModal');
             
             // Reset form
@@ -1131,7 +1318,7 @@
             document.getElementById('customCarbs').value = '';
             document.getElementById('customFat').value = '';
             
-            alert('✅ Eigenes Lebensmittel gespeichert!');
+            alert('✅ Eigenes Lebensmittel gespeichert!\n\nSie können es jetzt in der Suche finden oder unter Statistik → "Meine eigenen Lebensmittel" verwalten.');
         }
 
         // Add reminder
@@ -1214,6 +1401,7 @@
             
             if (view === 'stats') {
                 updateWeekView();
+                updateCustomFoodsList();
             }
         }
 
